@@ -102,3 +102,7 @@ temp/
 *.cache
 *.bak
 *.tmp
+
+# Folders
+model/data/*
+model/checkpoints/*
