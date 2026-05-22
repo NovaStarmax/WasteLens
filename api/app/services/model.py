@@ -9,25 +9,32 @@ from torchvision.models import ResNet18_Weights, resnet18
 
 logger = logging.getLogger(__name__)
 
-MODEL_PATH = Path(__file__).parent.parent.parent.parent / "model" / "checkpoints" / "best_model.pt"
+MODEL_PATH = (
+    Path(__file__).parent.parent.parent.parent
+    / "model"
+    / "checkpoints"
+    / "best_model.pt"
+)
 
 BIN_MAP = {
     "cardboard": "yellow bin",
-    "glass":     "green bin",
-    "metal":     "yellow bin",
-    "paper":     "yellow bin",
-    "plastic":   "yellow bin",
-    "trash":     "gray bin",
+    "glass": "green bin",
+    "metal": "yellow bin",
+    "paper": "yellow bin",
+    "plastic": "yellow bin",
+    "trash": "gray bin",
 }
 
-_TRANSFORMS = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225],
-    ),
-])
+_TRANSFORMS = transforms.Compose(
+    [
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225],
+        ),
+    ]
+)
 
 
 def _select_device() -> torch.device:
@@ -83,8 +90,7 @@ class ModelService:
         self._model.eval()
 
         logger.info(
-            "Model ready — epoch=%s, val_accuracy=%.4f, classes=%s",
-            checkpoint.get("epoch"),
+            "Model ready — val_accuracy=%.4f, classes=%s",
             checkpoint.get("val_accuracy"),
             self._class_names,
         )
