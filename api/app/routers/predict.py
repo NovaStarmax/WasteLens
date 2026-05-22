@@ -1,9 +1,10 @@
 import io
 import logging
 
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from PIL import Image, UnidentifiedImageError
 
+from app.core.security import verify_token
 from app.schemas.predict import PredictResponse
 from app.services.model import ModelService
 
@@ -34,7 +35,7 @@ def _check_magic(data: bytes) -> bool:
         500: {"description": "Model inference failed"},
     },
 )
-async def predict(file: UploadFile) -> PredictResponse:
+async def predict(file: UploadFile = File(...), _: dict = Depends(verify_token)) -> PredictResponse:
     if file.content_type not in _ALLOWED_CONTENT_TYPES:
         raise HTTPException(status_code=400, detail="Only JPEG and PNG images are accepted.")
 
