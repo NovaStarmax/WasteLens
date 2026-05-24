@@ -30,8 +30,12 @@ def _check_magic(data: bytes) -> bool:
 @router.post(
     "/predict",
     response_model=PredictResponse,
+    summary="Classify waste image",
+    description="Upload a JPEG or PNG image (max 10MB). Returns predicted waste class, confidence score and bin recommendation. Requires Bearer JWT token.",
+    response_description="Waste classification result",
     responses={
         400: {"description": "Invalid image (format, size or content)"},
+        401: {"description": "Token expired or invalid"},
         500: {"description": "Model inference failed"},
     },
 )

@@ -9,7 +9,17 @@ from app.schemas.auth import LoginRequest, TokenResponse
 router = APIRouter()
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    summary="Login",
+    description="Authenticate with username and password. Returns a JWT valid for 24 hours.",
+    response_description="JWT access token",
+    responses={
+        401: {"description": "Invalid credentials"},
+        500: {"description": "Auth misconfigured"},
+    },
+)
 def login(body: LoginRequest) -> TokenResponse:
     expected_username = os.getenv("APP_USERNAME")
     stored_hash = os.getenv("APP_PASSWORD_HASH")

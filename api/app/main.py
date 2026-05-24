@@ -32,6 +32,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="WasteLens API",
     version=os.getenv("VERSION", "0.0.0"),
+    description="WasteLens API — AI-powered waste classification. Upload an image to get instant sorting recommendations.",
+    contact={"name": "Antoine", "url": "https://github.com/NovaStarmax/WasteLens"},
+    license_info={"name": "MIT"},
     lifespan=lifespan,
 )
 
