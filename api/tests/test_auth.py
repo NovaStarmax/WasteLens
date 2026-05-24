@@ -24,6 +24,6 @@ def test_login_wrong_username_returns_401(client):
 
 def test_login_missing_config_returns_500(client):
     # Simulates APP_USERNAME / APP_PASSWORD_HASH not set in environment
-    with patch("app.routers.auth.os.getenv", return_value=None):
+    with patch("app.core.security.os.getenv", return_value=None):
         response = client.post("/login", json={"username": TEST_USERNAME, "password": TEST_PASSWORD})
     assert response.status_code == 500

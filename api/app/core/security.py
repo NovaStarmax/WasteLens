@@ -1,11 +1,36 @@
 import os
 from datetime import datetime, timedelta, timezone
 
+import bcrypt
 import jwt
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 _bearer = HTTPBearer()
+
+
+def authenticate_user(username: str, password: str) -> str:
+    expected_username = os.getenv("APP_USERNAME")
+    stored_hash = os.getenv("APP_PASSWORD_HASH")
+
+    if not expected_username or not stored_hash:
+        raise HTTPException(status_code=500, detail="Authentication is not configured.")
+
+    if username != expected_username:
+        raise HTTPException(status_code=401, detail="Invalid credentials.")
+
+    try:
+        password_valid = bcrypt.checkpw(
+            password.encode("utf-8"),
+            stored_hash.encode("utf-8"),
+        )
+    except ValueError:
+        raise HTTPException(status_code=500, detail="Authentication is misconfigured.")
+
+    if not password_valid:
+        raise HTTPException(status_code=401, detail="Invalid credentials.")
+
+    return username
 
 
 def create_access_token(data: dict) -> str:
