@@ -20,6 +20,18 @@ export function isAuthenticated() {
   return getToken() !== null
 }
 
+// Vérifie que le token existe ET que sa claim exp n'est pas dépassée
+export function isTokenValid() {
+  const token = getToken()
+  if (!token) return false
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.exp * 1000 > Date.now()
+  } catch {
+    return false
+  }
+}
+
 // --- Appels API ---
 
 // Authentifie l'utilisateur et retourne { access_token, token_type, expires_in }
