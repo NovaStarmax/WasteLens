@@ -107,10 +107,10 @@ export default function LoginScreen({
         }}
       >
         <Field
-          label="Email"
-          name="email"
-          type="email"
-          autoComplete="email"
+          label="Nom d’utilisateur"
+          name="username"
+          type="text"
+          autoComplete="username"
           placeholder="agent@structure.fr"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -130,7 +130,11 @@ export default function LoginScreen({
               <button
                 type="button"
                 onClick={() => setRevealed((v) => !v)}
-                aria-label={revealed ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                aria-label={
+                  revealed
+                    ? "Masquer le mot de passe"
+                    : "Afficher le mot de passe"
+                }
                 style={{
                   background: "none",
                   border: "none",
@@ -171,7 +175,8 @@ export default function LoginScreen({
               fontSize: 13,
               color: "var(--danger)",
               background: "color-mix(in srgb, var(--danger) 10%, transparent)",
-              border: "1px solid color-mix(in srgb, var(--danger) 30%, transparent)",
+              border:
+                "1px solid color-mix(in srgb, var(--danger) 30%, transparent)",
               padding: "8px 10px",
               borderRadius: "var(--radius-btn)",
               fontFamily: "var(--font-body)",
@@ -205,7 +210,8 @@ export default function LoginScreen({
             fontFamily: "var(--font-body)",
           }}
         >
-          En vous connectant, vous acceptez la <u>politique de confidentialité</u> et les <u>mentions légales</u>.
+          En vous connectant, vous acceptez la{" "}
+          <u>politique de confidentialité</u> et les <u>mentions légales</u>.
         </div>
       </div>
     </form>
