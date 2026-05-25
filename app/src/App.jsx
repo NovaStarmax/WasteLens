@@ -1,90 +1,253 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   LoginScreen,
   PredictHomeScreen,
   ResultScreen,
   LegalScreen,
 } from "./wastelens";
+import { login, setToken, isAuthenticated, predict, clearToken } from "./services/api";
+
+const HISTORY_KEY = "wastelens_history";
+const HISTORY_MAX = 10;
+
+const DEMO_IMAGES = {
+  cardboard: () => import("./assets/demo/cardboard.jpg"),
+  glass:     () => import("./assets/demo/glass.jpg"),
+  metal:     () => import("./assets/demo/metal.jpg"),
+  paper:     () => import("./assets/demo/paper.jpg"),
+  plastic:   () => import("./assets/demo/plastic.jpg"),
+  trash:     () => import("./assets/demo/trash.jpg"),
+};
 
 export default function App() {
-  const [route, setRoute] = useState("login"); // login | home | result | legal
+  const [route, setRoute] = useState("login");
   const [user, setUser] = useState(null);
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
+    catch { return []; }
+  });
   const [current, setCurrent] = useState(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState(null);
   const [offline, setOffline] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState(null);
+  const [predictLoading, setPredictLoading] = useState(false);
+  const [predictError, setPredictError] = useState(null);
+
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
+  const [showLogoutMenu, setShowLogoutMenu] = useState(false);
+  const logoutMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (isAuthenticated()) setRoute("home");
+  }, []);
+
+  useEffect(() => {
+    if (!showLogoutMenu) return;
+    function onMouseDown(e) {
+      if (logoutMenuRef.current && !logoutMenuRef.current.contains(e.target)) {
+        setShowLogoutMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, [showLogoutMenu]);
 
   // ---- LOGIN ----
   async function handleLogin(email, password) {
-    // Remplace par ton appel API d'auth.
-    setUser({ email });
-    setRoute("home");
+    setLoginLoading(true);
+    setLoginError(null);
+    try {
+      const { access_token } = await login(email, password);
+      setToken(access_token);
+      setUser({ email });
+      setRoute("home");
+    } catch (err) {
+      setLoginError(err.message);
+    } finally {
+      setLoginLoading(false);
+    }
   }
 
-  // ---- PHOTO ----
+  // ---- LOGOUT ----
+  function handleLogout() {
+    clearToken();
+    setHistory([]);
+    setUser(null);
+    setRoute("login");
+  }
+
+  // ---- PREDICT ----
+  async function handlePhoto(imageFile) {
+    if (predictLoading) return;
+    setPredictLoading(true);
+    setPredictError(null);
+    const thumbnail = URL.createObjectURL(imageFile);
+    try {
+      const result = await predict(imageFile);
+      const entry = {
+        id: String(Date.now()),
+        cls: result.predicted_class,
+        confidence: Math.round(result.confidence * 100),
+        time: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+        thumbnailUrl: thumbnail,
+        fileName: imageFile.name,
+      };
+      setCurrent(entry);
+      setCurrentImageUrl(thumbnail);
+      setHistory((prev) => {
+        const next = [entry, ...prev].slice(0, HISTORY_MAX);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+        return next;
+      });
+      setRoute("result");
+    } catch (err) {
+      URL.revokeObjectURL(thumbnail);
+      if (err.message.includes("Session expirée")) {
+        clearToken();
+        setRoute("login");
+      } else {
+        setPredictError(err.message);
+      }
+    } finally {
+      setPredictLoading(false);
+    }
+  }
+
   function handleTakePhoto() {
-    // Ouvre <input type="file" accept="image/*" capture="environment" />
-    // ou un picker custom, puis :
-    fakeApiPredict("cardboard", 0.94, "IMG_0428.jpg");
-  }
-  function handlePickGallery() {
-    fakeApiPredict("glass", 0.62, "IMG_0429.jpg");
+    cameraInputRef.current?.click();
   }
 
-  function fakeApiPredict(cls, confidence, fileName) {
-    const prediction = {
-      id: String(Date.now()),
-      cls,
-      confidence: Math.round(confidence * 100),
-      time: "à l'instant",
-      fileName,
-    };
-    setCurrent(prediction);
-    setHistory((h) => [
-      { ...prediction, time: "il y a quelques sec." },
-      ...h,
-    ]);
-    setRoute("result");
+  function handlePickGallery() {
+    galleryInputRef.current?.click();
+  }
+
+  async function handleDemo(className) {
+    const mod = await DEMO_IMAGES[className]?.();
+    if (!mod) return;
+    const res = await fetch(mod.default);
+    const blob = await res.blob();
+    const file = new File([blob], `${className}.jpg`, { type: "image/jpeg" });
+    await handlePhoto(file);
   }
 
   // ---- RENDER ----
   return (
     <div
       className="theme-civique"
-      style={{
-        minHeight: "100dvh",
-        background: "var(--bg)",
-        display: "flex",
-        flexDirection: "column",
-      }}
+      style={{ position: "relative", minHeight: "100dvh", background: "var(--bg)", display: "flex", flexDirection: "column" }}
     >
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        style={{ display: "none" }}
+        onChange={(e) => { if (e.target.files[0]) handlePhoto(e.target.files[0]); e.target.value = ""; }}
+      />
+      <input
+        ref={galleryInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={(e) => { if (e.target.files[0]) handlePhoto(e.target.files[0]); e.target.value = ""; }}
+      />
+
       {route === "login" && (
-        <LoginScreen onSubmit={handleLogin} onForgotPassword={() => alert("TODO")} />
+        <LoginScreen
+          onSubmit={handleLogin}
+          onForgotPassword={() => alert("TODO")}
+          loading={loginLoading}
+          error={loginError}
+        />
       )}
 
       {route === "home" && (
-        <PredictHomeScreen
-          agentName={user?.email}
-          history={history}
-          offline={offline}
-          queueCount={history.filter((p) => p.pending).length}
-          onTakePhoto={handleTakePhoto}
-          onPickGallery={handlePickGallery}
-          onSelectPrediction={(p) => {
-            setCurrent(p);
-            setRoute("result");
-          }}
-          onRetryQueue={() => setOffline(false)}
-          onProfile={() => setRoute("legal")}
-          onLegal={() => setRoute("legal")}
-        />
+        <>
+          {predictError && (
+            <div role="alert" style={{
+              margin: "12px 20px 0",
+              padding: "10px 14px",
+              background: "color-mix(in srgb, var(--danger) 10%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--danger) 30%, transparent)",
+              borderRadius: "var(--radius-btn)",
+              fontSize: 13,
+              color: "var(--danger)",
+              fontFamily: "var(--font-body)",
+            }}>
+              {predictError}
+            </div>
+          )}
+          <PredictHomeScreen
+            agentName={user?.email}
+            history={history}
+            offline={offline}
+            queueCount={history.filter((p) => p.pending).length}
+            onTakePhoto={predictLoading ? undefined : handleTakePhoto}
+            onPickGallery={predictLoading ? undefined : handlePickGallery}
+            onSelectPrediction={(p) => { setCurrent(p); setCurrentImageUrl(p.thumbnailUrl); setRoute("result"); }}
+            onRetryQueue={() => setOffline(false)}
+            onDemo={handleDemo}
+            onProfile={() => setShowLogoutMenu((prev) => !prev)}
+            onLegal={() => setRoute("legal")}
+          />
+          {showLogoutMenu && (
+            <div
+              ref={logoutMenuRef}
+              style={{
+                position: "absolute",
+                top: 56,
+                left: 16,
+                zIndex: 100,
+                minWidth: 200,
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-card)",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
+                padding: 8,
+                fontFamily: "var(--font-body)",
+              }}
+            >
+              <div style={{ padding: "6px 8px 8px", fontSize: 12, color: "var(--text-muted)" }}>
+                {user?.email}
+              </div>
+              <hr style={{ margin: "4px 0", border: "none", borderTop: "1px solid var(--border)" }} />
+              <button
+                type="button"
+                onClick={() => { handleLogout(); setShowLogoutMenu(false); }}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 8px",
+                  border: "none",
+                  background: "transparent",
+                  borderRadius: "var(--radius-btn)",
+                  color: "var(--danger)",
+                  fontFamily: "var(--font-body)",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: "pointer",
+                }}
+              >
+                <span style={{ fontSize: 16 }}>→</span>
+                Se déconnecter
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {route === "result" && (
         <ResultScreen
           prediction={current}
+          imageUrl={currentImageUrl}
           onBack={() => setRoute("home")}
           onHistory={() => setRoute("home")}
-          onNewPhoto={() => setRoute("home")}
+          onNewPhoto={() => { setPredictError(null); handleTakePhoto(); }}
         />
       )}
 
