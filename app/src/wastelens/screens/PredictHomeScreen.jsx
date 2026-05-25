@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Ic } from "../icons";
+import { WASTE_CLASSES, CLASS_LABEL } from "../constants";
 import TopBar from "../components/TopBar";
 import { PrimaryButton, SecondaryButton } from "../components/Button";
 import HistoryRow from "../components/HistoryRow";
@@ -32,8 +33,11 @@ export default function PredictHomeScreen({
   onRetryQueue,
   onProfile,
   onLegal,
+  onDemo,
   showIcons = true,
 }) {
+  const [showDemoSelector, setShowDemoSelector] = useState(false);
+
   return (
     <div
       style={{
@@ -115,6 +119,52 @@ export default function PredictHomeScreen({
             >
               Choisir dans la galerie
             </SecondaryButton>
+
+            {onDemo && (
+              <>
+                <SecondaryButton
+                  onClick={() => setShowDemoSelector((v) => !v)}
+                  showIcons={false}
+                >
+                  ⚡ Tester avec une image démo
+                </SecondaryButton>
+
+                {showDemoSelector && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, paddingTop: 4 }}>
+                    {WASTE_CLASSES.map((cls) => (
+                      <button
+                        key={cls}
+                        type="button"
+                        onClick={() => { onDemo(cls); setShowDemoSelector(false); }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "6px 12px",
+                          border: "1.5px solid var(--border-strong)",
+                          borderRadius: "var(--radius-pill)",
+                          background: "transparent",
+                          color: "var(--text)",
+                          fontFamily: "var(--font-body)",
+                          fontSize: 13,
+                          fontWeight: 500,
+                          cursor: "pointer",
+                        }}
+                      >
+                        <span style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: "50%",
+                          background: `var(--cls-${cls})`,
+                          flexShrink: 0,
+                        }} />
+                        {CLASS_LABEL[cls]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -188,6 +188,7 @@ export default function App() {
             onPickGallery={predictLoading ? undefined : handlePickGallery}
             onSelectPrediction={(p) => { setCurrent(p); setCurrentImageUrl(p.thumbnailUrl); setRoute("result"); }}
             onRetryQueue={() => setOffline(false)}
+            onDemo={handleDemo}
             onProfile={() => setShowLogoutMenu((prev) => !prev)}
             onLegal={() => setRoute("legal")}
           />
