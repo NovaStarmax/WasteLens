@@ -5,7 +5,7 @@ import {
   ResultScreen,
   LegalScreen,
 } from "./wastelens";
-import { login, setToken, isAuthenticated, predict, clearToken } from "./services/api";
+import { login, setToken, isTokenValid, predict, clearToken } from "./services/api";
 
 const HISTORY_KEY = "wastelens_history";
 const HISTORY_MAX = 10;
@@ -40,7 +40,11 @@ export default function App() {
   const logoutMenuRef = useRef(null);
 
   useEffect(() => {
-    if (isAuthenticated()) setRoute("home");
+    if (isTokenValid()) {
+      setRoute("home");
+    } else {
+      clearToken();
+    }
   }, []);
 
   useEffect(() => {
