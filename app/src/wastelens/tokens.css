@@ -1,0 +1,56 @@
+/* ============================================================
+   WasteLens — Direction artistique "Bleu Civique"
+   Variables CSS pilotant toute l'identité visuelle.
+   Enrobe ton app (ou la zone WasteLens) avec
+   <div className="theme-civique">...</div>
+   ============================================================ */
+
+.theme-civique {
+  /* ---- Typo ---- */
+  --font-display: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* ---- Palette ---- */
+  --bg: #ffffff;
+  --surface: #f2f4f8;
+  --surface-2: #e4e9f2;
+  --primary: #0a2540;
+  --primary-ink: #ffffff;
+  --accent: #1a6fe0;
+  --border: rgba(10, 37, 64, 0.14);
+  --border-strong: rgba(10, 37, 64, 0.35);
+  --text: #0a0e1a;
+  --text-muted: #4a5567;
+  --danger: #b91c1c;
+  --success: #047857;
+  --warn: #b45309;
+
+  /* ---- Radius / shadow ---- */
+  --shadow-card: none;
+  --radius-card: 4px;
+  --radius-btn: 4px;
+  --radius-pill: 999px;
+
+  /* ---- Couleurs des classes de déchets ---- */
+  --cls-cardboard: #8b4513;
+  --cls-glass: #047857;
+  --cls-metal: #475569;
+  --cls-paper: #b45309;
+  --cls-plastic: #b91c1c;
+  --cls-trash: #1f2937;
+}
+
+/* ---- Base ---- */
+.theme-civique {
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.theme-civique button,
+.theme-civique input,
+.theme-civique select,
+.theme-civique textarea {
+  font-family: inherit;
+}
