@@ -1,19 +1,17 @@
 import logging
+import os
 from pathlib import Path
 
 import torch
 import torch.nn as nn
 from PIL import Image
 from torchvision import transforms
-from torchvision.models import ResNet18_Weights, resnet18
+from torchvision.models import resnet18
 
 logger = logging.getLogger(__name__)
 
-MODEL_PATH = (
-    Path(__file__).parent.parent.parent.parent
-    / "model"
-    / "checkpoints"
-    / "best_model.pt"
+MODEL_PATH = Path(
+    os.getenv("MODEL_PATH", "/app/checkpoints/best_model.pt")
 )
 
 BIN_MAP = {
@@ -46,7 +44,7 @@ def _select_device() -> torch.device:
 
 
 def _build_model(num_classes: int) -> nn.Module:
-    model = resnet18(weights=ResNet18_Weights.DEFAULT)
+    model = resnet18(weights=None)
 
     for param in model.parameters():
         param.requires_grad = False
