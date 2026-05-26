@@ -9,6 +9,7 @@ yarn.lock
 pnpm-lock.yaml
 
 # Python
+model/uv.lock
 __pycache__/
 *.py[cod]
 *.pyo
@@ -100,6 +101,7 @@ temp/
 # Others
 *.log
 *.lock
+!api/uv.lock
 *.cache
 *.bak
 *.tmp
