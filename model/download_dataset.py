@@ -37,9 +37,7 @@ def download_dataset() -> None:
         zip_path.unlink()
         print(f"Removed {zip_path.name}")
 
-    _flatten_if_needed(DATA_DIR)
-    _remove_non_class_dirs(DATA_DIR)
-    _remove_empty_dirs(DATA_DIR)
+    _normalize_structure(DATA_DIR)
     _verify_structure()
     _print_class_counts()
 
@@ -54,42 +52,25 @@ def _find_dataset_root(base_dir: Path) -> Path | None:
     return None
 
 
-def _flatten_if_needed(base_dir: Path) -> None:
+def _normalize_structure(base_dir: Path) -> None:
     direct = [c for c in EXPECTED_CLASSES if (base_dir / c).is_dir()]
-    if len(direct) == len(EXPECTED_CLASSES):
-        return
+    if len(direct) < len(EXPECTED_CLASSES):
+        nested_root = _find_dataset_root(base_dir)
+        if nested_root is None:
+            raise RuntimeError(f"Could not locate all class folders under {base_dir}")
+        print(f"Intermediate folder detected: '{nested_root.relative_to(base_dir)}'")
+        for cls in EXPECTED_CLASSES:
+            dst = base_dir / cls
+            if dst.exists():
+                raise RuntimeError(f"Cannot flatten: '{dst}' already exists")
+            shutil.move(str(nested_root / cls), str(dst))
+        shutil.rmtree(nested_root)
+        print("Flattened successfully.")
 
-    nested_root = _find_dataset_root(base_dir)
-    if nested_root is None:
-        raise RuntimeError(f"Could not locate all class folders under {base_dir}")
-
-    print(f"Intermediate folder detected: '{nested_root.relative_to(base_dir)}'")
-    for cls in EXPECTED_CLASSES:
-        dst = base_dir / cls
-        if dst.exists():
-            raise RuntimeError(
-                f"Cannot flatten: '{dst}' already exists in {base_dir}"
-            )
-        shutil.move(str(nested_root / cls), str(dst))
-    shutil.rmtree(nested_root)
-    print("Flattened successfully.")
-
-
-def _remove_non_class_dirs(base_dir: Path) -> None:
     for path in list(base_dir.iterdir()):
         if path.is_dir() and path.name not in EXPECTED_CLASSES:
             shutil.rmtree(path)
             print(f"Removed non-class directory: {path.name}")
-
-
-def _remove_empty_dirs(base_dir: Path) -> None:
-    for path in sorted(base_dir.rglob("*"), key=lambda p: len(p.parts), reverse=True):
-        if path.is_dir():
-            try:
-                path.rmdir()
-                print(f"Removed empty directory: {path.relative_to(base_dir)}")
-            except OSError:
-                pass
 
 
 def _dataset_exists() -> bool:
