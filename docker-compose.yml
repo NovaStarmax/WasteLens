@@ -1,0 +1,24 @@
+services:
+  wastelens-api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    env_file:
+      - ./api/.env
+    environment:
+      - MODEL_PATH=/app/checkpoints/best_model.pt
+    volumes:
+      - ./model/checkpoints/best_model.pt:/app/checkpoints/best_model.pt:ro
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  wastelens-app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - wastelens-api
+    restart: unless-stopped
