@@ -39,9 +39,3 @@ jobs:
       - name: Deploy model on VPS
         run: |
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "sudo /usr/local/bin/deploy-wastelens-model"
-
-      - name: Restart API via Coolify webhook
-        run: |
-          curl -X POST "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
-            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
-            -H "Content-Type: application/json"
