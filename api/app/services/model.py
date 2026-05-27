@@ -79,19 +79,25 @@ class ModelService:
 
         logger.info("Loading model from %s on device=%s", MODEL_PATH, self._device)
 
-        checkpoint = torch.load(MODEL_PATH, map_location=self._device)
-        self._class_names = checkpoint["class_names"]
-
-        self._model = _build_model(num_classes=len(self._class_names))
-        self._model.load_state_dict(checkpoint["model_state_dict"])
-        self._model.to(self._device)
-        self._model.eval()
-
-        logger.info(
-            "Model ready — val_accuracy=%.4f, classes=%s",
-            checkpoint.get("val_accuracy"),
-            self._class_names,
-        )
+        try:
+            checkpoint = torch.load(MODEL_PATH, weights_only=True, map_location=self._device)
+            self._class_names = checkpoint["class_names"]
+            self._model = _build_model(num_classes=len(self._class_names))
+            self._model.load_state_dict(checkpoint["model_state_dict"])
+            self._model.to(self._device)
+            self._model.eval()
+            logger.info(
+                "Model ready — val_accuracy=%.4f, classes=%s",
+                checkpoint.get("val_accuracy"),
+                self._class_names,
+            )
+        except FileNotFoundError:
+            raise RuntimeError(
+                f"Model not found at {MODEL_PATH}. "
+                "Upload best_model.pt to the checkpoints volume before starting."
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to load model: {e}")
 
     def predict(self, image: Image.Image) -> dict:
         if self._model is None:
