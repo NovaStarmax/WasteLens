@@ -17,8 +17,8 @@ services:
     build:
       context: ./app
       dockerfile: Dockerfile
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     depends_on:
       - wastelens-api
     restart: unless-stopped
