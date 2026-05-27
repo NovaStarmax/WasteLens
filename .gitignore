@@ -97,6 +97,7 @@ temp/
 *.webp
 *.svg
 !model/reports/*.png
+!app/src/assets/demo/*.jpg
 
 # Others
 *.log
