@@ -1,0 +1,11 @@
+services:
+  wastelens-api:
+    ports:
+      - "8000:8000"
+
+  wastelens-app:
+    ports:
+      - "80:80"
+    build:
+      args:
+        VITE_API_URL: ""
