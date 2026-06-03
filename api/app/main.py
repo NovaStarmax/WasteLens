@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import auth, health, predict
 from app.services.model import ModelService
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # Load environment variables from .env before anything else reads os.getenv
 load_dotenv(Path(__file__).parent.parent / ".env")
@@ -38,6 +39,8 @@ app = FastAPI(
     license_info={"name": "MIT"},
     lifespan=lifespan,
 )
+
+Instrumentator().instrument(app).expose(app)
 
 app.add_middleware(
     CORSMiddleware,

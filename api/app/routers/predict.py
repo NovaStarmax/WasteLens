@@ -7,6 +7,7 @@ from PIL import Image, UnidentifiedImageError
 from app.core.security import verify_token
 from app.schemas.predict import PredictResponse
 from app.services.model import ModelService
+from app.metrics import predictions_by_class, confidence_scores
 
 logger = logging.getLogger(__name__)
 
@@ -61,5 +62,8 @@ async def predict(file: UploadFile = File(...), _: dict = Depends(verify_token))
     except Exception as exc:
         logger.exception("Model inference failed: %s", exc)
         raise HTTPException(status_code=500, detail="Model inference failed.")
+
+    predictions_by_class.labels(predicted_class=result["predicted_class"]).inc()
+    confidence_scores.observe(result["confidence"])
 
     return PredictResponse(**result)
