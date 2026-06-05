@@ -27,3 +27,17 @@ def test_login_missing_config_returns_500(client):
     with patch("app.core.security.os.getenv", return_value=None):
         response = client.post("/login", json={"username": TEST_USERNAME, "password": TEST_PASSWORD})
     assert response.status_code == 500
+
+
+def test_login_rate_limit_returns_429(client):
+    from app.core.limiter import limiter
+    limiter._storage.reset()  # état propre indépendamment des autres tests
+
+    for _ in range(6):
+        response = client.post(
+            "/login",
+            json={"username": TEST_USERNAME, "password": "wrongpassword"},
+        )
+
+    assert response.status_code == 429
+    limiter._storage.reset()  # nettoyage pour les tests suivants
