@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import auth, health, predict
+from app.routers import auth, health, predict, reports
 from app.services.model import ModelService
 from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -53,5 +53,6 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(predict.router)
+app.include_router(reports.router)
 
 logger.info("WasteLens API started — env=%s, version=%s", os.getenv("ENVIRONMENT"), os.getenv("VERSION"))
