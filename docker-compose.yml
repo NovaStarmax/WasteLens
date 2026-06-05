@@ -48,8 +48,8 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     restart: unless-stopped
     depends_on:
       - prometheus
