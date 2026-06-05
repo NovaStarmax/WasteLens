@@ -7,8 +7,10 @@ services:
       - ./api/.env
     environment:
       - MODEL_PATH=/app/checkpoints/best_model.pt
+      - REPORTS_PATH=/app/reports
     volumes:
       - ./model/checkpoints:/app/checkpoints:ro
+      - ./model/reports:/app/reports:ro
     expose:
       - "8000"
     restart: unless-stopped
