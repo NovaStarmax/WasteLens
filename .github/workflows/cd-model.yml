@@ -46,8 +46,8 @@ jobs:
 
       - name: Copy reports to VPS
         run: |
-          scp ./artifacts/model/reports/evaluation_report.json ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/evaluation_report.json
-          scp ./artifacts/model/reports/confusion_matrix.png ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/confusion_matrix.png
+          scp ./artifacts/evaluation_report.json ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/evaluation_report.json
+          scp ./artifacts/confusion_matrix.png ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/confusion_matrix.png
 
       - name: Deploy model on VPS
         run: |
