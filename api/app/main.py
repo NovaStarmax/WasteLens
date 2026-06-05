@@ -6,7 +6,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
+from app.core.limiter import limiter
 from app.routers import auth, health, predict, reports
 from app.services.model import ModelService
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -39,6 +42,9 @@ app = FastAPI(
     license_info={"name": "MIT"},
     lifespan=lifespan,
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 Instrumentator().instrument(app).expose(app)
 
