@@ -1,7 +1,7 @@
 import io
 import os
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import bcrypt
 import jwt
@@ -39,8 +39,17 @@ def mock_predict_service():
 
 @pytest.fixture(scope="session")
 def client(mock_predict_service):
-    with TestClient(app) as c:
-        yield c
+    mock_conn = AsyncMock()
+    mock_conn.run_sync = AsyncMock()
+    mock_cm = MagicMock()
+    mock_cm.__aenter__ = AsyncMock(return_value=mock_conn)
+    mock_cm.__aexit__ = AsyncMock(return_value=False)
+
+    with patch("app.main.engine") as mock_engine, \
+         patch("app.main.create_admin_if_empty", new_callable=AsyncMock):
+        mock_engine.begin.return_value = mock_cm
+        with TestClient(app) as c:
+            yield c
 
 
 @pytest.fixture(scope="session")

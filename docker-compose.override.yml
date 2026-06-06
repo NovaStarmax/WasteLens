@@ -2,6 +2,11 @@ services:
   wastelens-api:
     ports:
       - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/wastelens
+    depends_on:
+      db:
+        condition: service_healthy
 
   wastelens-app:
     ports:
@@ -9,3 +14,22 @@ services:
     build:
       args:
         VITE_API_URL: ""
+
+  db:
+    image: postgres:18-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=wastelens
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d wastelens"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db_data:

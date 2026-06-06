@@ -10,6 +10,8 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.core.limiter import limiter
+from app.db.base import Base, engine
+from app.db.seed import create_admin_if_empty
 from app.routers import auth, health, predict, reports
 from app.services.model import ModelService
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -30,6 +32,9 @@ cors_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ModelService.get_instance().load()
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    await create_admin_if_empty()
     yield
 
 
