@@ -1,5 +1,6 @@
 import io
 import os
+import uuid
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -8,20 +9,48 @@ import jwt
 import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
+from sqlalchemy.ext.asyncio import AsyncSession
 
-# Test credentials — set before importing app; python-dotenv does not override existing env vars by default
 TEST_USERNAME = "testuser"
 TEST_PASSWORD = "testpassword123"
-TEST_JWT_SECRET = "test-jwt-secret-for-pytest-only-xx"  # 32+ bytes — avoids PyJWT InsecureKeyLengthWarning
+TEST_JWT_SECRET = "test-jwt-secret-for-pytest-only-xx"
+TEST_USER_ID = "12345678-1234-5678-1234-567812345678"
+TEST_USER_ROLE = "admin"
 
-os.environ["APP_USERNAME"] = TEST_USERNAME
-os.environ["APP_PASSWORD_HASH"] = bcrypt.hashpw(
-    TEST_PASSWORD.encode(), bcrypt.gensalt()
-).decode()
 os.environ["JWT_SECRET"] = TEST_JWT_SECRET
 os.environ["JWT_EXPIRE_HOURS"] = "24"
 
 from app.main import app  # noqa: E402
+from app.db.base import get_db  # noqa: E402
+
+
+@pytest.fixture(scope="session")
+def mock_admin_user():
+    user = MagicMock()
+    user.id = uuid.UUID(TEST_USER_ID)
+    user.username = TEST_USERNAME
+    user.password_hash = bcrypt.hashpw(TEST_PASSWORD.encode(), bcrypt.gensalt()).decode()
+    user.role = TEST_USER_ROLE
+    return user
+
+
+@pytest.fixture(scope="session")
+def mock_standard_user():
+    user = MagicMock()
+    user.id = uuid.uuid4()
+    user.username = "standarduser"
+    user.password_hash = bcrypt.hashpw(b"standardpassword", bcrypt.gensalt()).decode()
+    user.role = "user"
+    return user
+
+
+@pytest.fixture(scope="session")
+def mock_db(mock_admin_user):
+    session = AsyncMock(spec=AsyncSession)
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = mock_admin_user
+    session.execute = AsyncMock(return_value=mock_result)
+    return session
 
 
 @pytest.fixture(scope="session")
@@ -38,7 +67,12 @@ def mock_predict_service():
 
 
 @pytest.fixture(scope="session")
-def client(mock_predict_service):
+def client(mock_predict_service, mock_db):
+    async def override_get_db():
+        yield mock_db
+
+    app.dependency_overrides[get_db] = override_get_db
+
     mock_conn = AsyncMock()
     mock_conn.run_sync = AsyncMock()
     mock_cm = MagicMock()
@@ -51,11 +85,26 @@ def client(mock_predict_service):
         with TestClient(app) as c:
             yield c
 
+    app.dependency_overrides.clear()
+
 
 @pytest.fixture(scope="session")
 def valid_token():
     payload = {
         "sub": TEST_USERNAME,
+        "user_id": TEST_USER_ID,
+        "role": TEST_USER_ROLE,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=24),
+    }
+    return jwt.encode(payload, TEST_JWT_SECRET, algorithm="HS256")
+
+
+@pytest.fixture(scope="session")
+def user_token():
+    payload = {
+        "sub": "standarduser",
+        "user_id": str(uuid.uuid4()),
+        "role": "user",
         "exp": datetime.now(timezone.utc) + timedelta(hours=24),
     }
     return jwt.encode(payload, TEST_JWT_SECRET, algorithm="HS256")
