@@ -5,45 +5,37 @@ import bcrypt
 import jwt
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.models import User
 
 _bearer = HTTPBearer()
 
 
-def authenticate_user(username: str, password: str) -> str:
-    expected_username = os.getenv("APP_USERNAME")
-    stored_hash = os.getenv("APP_PASSWORD_HASH")
-
-    if not expected_username or not stored_hash:
-        raise HTTPException(status_code=500, detail="Authentication is not configured.")
-
-    if username != expected_username:
-        raise HTTPException(status_code=401, detail="Invalid credentials.")
-
-    try:
-        password_valid = bcrypt.checkpw(
-            password.encode("utf-8"),
-            stored_hash.encode("utf-8"),
-        )
-    except ValueError:
-        raise HTTPException(status_code=500, detail="Authentication is misconfigured.")
-
-    if not password_valid:
-        raise HTTPException(status_code=401, detail="Invalid credentials.")
-
-    return username
+async def authenticate_user(username: str, password: str, db: AsyncSession) -> User | None:
+    result = await db.execute(select(User).where(User.username == username))
+    user = result.scalar_one_or_none()
+    if not user:
+        return None
+    if not bcrypt.checkpw(password.encode(), user.password_hash.encode()):
+        return None
+    return user
 
 
-def create_access_token(data: dict) -> str:
+def create_access_token(user: User) -> str:
     secret = os.getenv("JWT_SECRET")
     if not secret:
         raise RuntimeError("JWT_SECRET is not configured.")
 
-    expire_hours = int(os.getenv("JWT_EXPIRE_HOURS", "24"))
-
-    payload = data.copy()
-    payload["exp"] = datetime.now(timezone.utc) + timedelta(hours=expire_hours)
-
+    payload = {
+        "sub": user.username,
+        "user_id": str(user.id),
+        "role": user.role,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=int(os.getenv("JWT_EXPIRE_HOURS", "24"))),
+    }
     return jwt.encode(payload, secret, algorithm="HS256")
+
 
 def verify_token(credentials: HTTPAuthorizationCredentials = Depends(_bearer)) -> dict:
     try:

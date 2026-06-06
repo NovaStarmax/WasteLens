@@ -103,3 +103,39 @@ def test_confusion_matrix_returns_png(client, valid_token, tmp_path, valid_png_b
 
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
+
+
+# --- Contrôle des rôles ---
+
+def test_reports_evaluation_requires_admin(client, user_token):
+    response = client.get(
+        "/reports/evaluation",
+        headers={"Authorization": f"Bearer {user_token}"},
+    )
+    assert response.status_code == 403
+
+
+def test_reports_confusion_matrix_requires_admin(client, user_token):
+    response = client.get(
+        "/reports/confusion-matrix",
+        headers={"Authorization": f"Bearer {user_token}"},
+    )
+    assert response.status_code == 403
+
+
+def test_reports_evaluation_admin_no_file(client, valid_token, tmp_path):
+    with patch("app.routers.reports.REPORTS_PATH", tmp_path):
+        response = client.get(
+            "/reports/evaluation",
+            headers={"Authorization": f"Bearer {valid_token}"},
+        )
+    assert response.status_code == 404
+
+
+def test_reports_confusion_matrix_admin_no_file(client, valid_token, tmp_path):
+    with patch("app.routers.reports.REPORTS_PATH", tmp_path):
+        response = client.get(
+            "/reports/confusion-matrix",
+            headers={"Authorization": f"Bearer {valid_token}"},
+        )
+    assert response.status_code == 404
