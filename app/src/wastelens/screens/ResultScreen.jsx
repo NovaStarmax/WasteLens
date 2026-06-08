@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
 import { Ic } from "../icons";
 import TopBar from "../components/TopBar";
 import { PrimaryButton } from "../components/Button";
@@ -25,6 +27,9 @@ export default function ResultScreen({
   onNewPhoto,
   showIcons = true,
 }) {
+  const [imageOpen, setImageOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   if (!prediction) return null;
   const { cls, confidence, time, fileName } = prediction;
   const lowConf = confidence < lowConfidenceThreshold;
@@ -74,12 +79,63 @@ export default function ResultScreen({
             flexShrink: 0,
           }}
         >
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt=""
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
+          {imageUrl && !imageError ? (
+            <Dialog.Root open={imageOpen} onOpenChange={setImageOpen}>
+              <Dialog.Trigger asChild>
+                <button
+                  type="button"
+                  style={{
+                    width: "100%", height: "100%", padding: 0,
+                    border: "none", background: "none",
+                    cursor: "zoom-in", display: "block",
+                  }}
+                >
+                  <img
+                    src={imageUrl}
+                    alt=""
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    onError={() => setImageError(true)}
+                  />
+                </button>
+              </Dialog.Trigger>
+              <Dialog.Portal>
+                <Dialog.Overlay
+                  style={{
+                    position: "fixed", inset: 0, zIndex: 200,
+                    background: "rgba(0,0,0,0.92)",
+                  }}
+                />
+                <Dialog.Content
+                  aria-describedby={undefined}
+                  style={{
+                    position: "fixed", inset: 0, zIndex: 201,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  <Dialog.Title style={{ display: "none" }}>Image en plein écran</Dialog.Title>
+                  <img
+                    src={imageUrl}
+                    alt=""
+                    style={{ maxWidth: "100vw", maxHeight: "100dvh", objectFit: "contain", display: "block" }}
+                  />
+                  <Dialog.Close asChild>
+                    <button
+                      type="button"
+                      style={{
+                        position: "fixed", top: 16, right: 16,
+                        width: 40, height: 40, borderRadius: "50%",
+                        background: "rgba(255,255,255,0.15)",
+                        border: "none", cursor: "pointer",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        color: "#fff", backdropFilter: "blur(4px)",
+                      }}
+                    >
+                      <X size={20} />
+                    </button>
+                  </Dialog.Close>
+                </Dialog.Content>
+              </Dialog.Portal>
+            </Dialog.Root>
           ) : (
             <WastePic cls={cls} size={56} radius={0} />
           )}

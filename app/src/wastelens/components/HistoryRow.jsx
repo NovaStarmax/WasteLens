@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import WastePic from "../WastePic";
 import { Ic } from "../icons";
 import { CLASS_LABEL } from "../constants";
@@ -21,6 +21,7 @@ export default function HistoryRow({
   onClick,
 }) {
   const { cls, confidence, time, thumbnailUrl } = prediction || {};
+  const [imgError, setImgError] = useState(false);
   return (
     <button
       type="button"
@@ -40,7 +41,7 @@ export default function HistoryRow({
         fontFamily: "var(--font-body)",
       }}
     >
-      {thumbnailUrl ? (
+      {thumbnailUrl && !imgError ? (
         <img
           src={thumbnailUrl}
           alt=""
@@ -51,6 +52,7 @@ export default function HistoryRow({
             borderRadius: "var(--radius-btn)",
             flexShrink: 0,
           }}
+          onError={() => setImgError(true)}
         />
       ) : (
         <WastePic cls={cls} size={44} />

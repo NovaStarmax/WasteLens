@@ -6,6 +6,7 @@ import {
   LegalScreen,
 } from "./wastelens";
 import { login, setToken, isTokenValid, predict, clearToken } from "./services/api";
+import { Loader2 } from "lucide-react";
 
 const HISTORY_KEY = "wastelens_history";
 const HISTORY_MAX = 10;
@@ -33,6 +34,7 @@ export default function App() {
   const [loginError, setLoginError] = useState(null);
   const [predictLoading, setPredictLoading] = useState(false);
   const [predictError, setPredictError] = useState(null);
+  const [pendingImageUrl, setPendingImageUrl] = useState(null);
 
   const cameraInputRef = useRef(null);
   const galleryInputRef = useRef(null);
@@ -88,6 +90,7 @@ export default function App() {
     setPredictLoading(true);
     setPredictError(null);
     const thumbnail = URL.createObjectURL(imageFile);
+    setPendingImageUrl(thumbnail);
     try {
       const result = await predict(imageFile);
       const entry = {
@@ -116,6 +119,7 @@ export default function App() {
       }
     } finally {
       setPredictLoading(false);
+      setPendingImageUrl(null);
     }
   }
 
@@ -186,6 +190,8 @@ export default function App() {
           <PredictHomeScreen
             agentName={user?.email}
             history={history}
+            isLoading={predictLoading}
+            imagePreview={pendingImageUrl}
             offline={offline}
             queueCount={history.filter((p) => p.pending).length}
             onTakePhoto={predictLoading ? undefined : handleTakePhoto}
@@ -196,6 +202,29 @@ export default function App() {
             onProfile={() => setShowLogoutMenu((prev) => !prev)}
             onLegal={() => setRoute("legal")}
           />
+          {predictLoading && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 50,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(255,255,255,0.82)",
+                backdropFilter: "blur(4px)",
+              }}
+            >
+              <Loader2
+                size={40}
+                style={{ animation: "wastelens-spin 1s linear infinite", color: "var(--primary)" }}
+              />
+              <div style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
+                Analyse en cours…
+              </div>
+            </div>
+          )}
           {showLogoutMenu && (
             <div
               ref={logoutMenuRef}
