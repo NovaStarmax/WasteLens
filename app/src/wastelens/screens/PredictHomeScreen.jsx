@@ -25,6 +25,8 @@ import OfflineBanner from "../components/OfflineBanner";
 export default function PredictHomeScreen({
   agentName = "Agent",
   history = [],
+  historyTotal = 0,
+  onLoadMore,
   lowConfidenceThreshold = 70,
   isLoading = false,
   imagePreview = null,
@@ -54,7 +56,7 @@ export default function PredictHomeScreen({
       <TopBar
         title="Scanner"
         subtitle={agentName}
-        leftIcon={<Ic.user />}
+        leftIcon={<Ic.menu />}
         rightIcon={<Ic.doc />}
         onLeftClick={onProfile}
         onRightClick={onLegal}
@@ -261,6 +263,26 @@ export default function PredictHomeScreen({
               }
             />
           ))
+        )}
+        {history.length > 0 && history.length < historyTotal && onLoadMore && (
+          <button
+            type="button"
+            onClick={onLoadMore}
+            style={{
+              width: "100%",
+              padding: "10px",
+              border: "1px dashed var(--border)",
+              borderRadius: "var(--radius-btn)",
+              background: "transparent",
+              color: "var(--text-muted)",
+              fontFamily: "var(--font-body)",
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+          >
+            Voir plus — {historyTotal - history.length} restante{historyTotal - history.length > 1 ? "s" : ""}
+          </button>
         )}
       </div>
     </div>
