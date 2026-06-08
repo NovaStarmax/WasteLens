@@ -52,3 +52,11 @@ jobs:
       - name: Deploy model on VPS
         run: |
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "sudo /usr/local/bin/deploy-wastelens-model"
+
+      - name: Deployment summary
+        run: |
+          echo "## ✅ Model Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.event.workflow_run.head_sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployed at:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Model:** best_model.pt" >> $GITHUB_STEP_SUMMARY
+          echo "- **Reports:** evaluation_report.json + confusion_matrix.png" >> $GITHUB_STEP_SUMMARY
