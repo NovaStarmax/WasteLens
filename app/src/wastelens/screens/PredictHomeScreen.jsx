@@ -6,6 +6,7 @@ import { PrimaryButton, SecondaryButton } from "../components/Button";
 import HistoryRow from "../components/HistoryRow";
 import OfflineBanner from "../components/OfflineBanner";
 
+
 /**
  * Écran principal : capture photo + historique de session.
  *
@@ -25,6 +26,8 @@ export default function PredictHomeScreen({
   agentName = "Agent",
   history = [],
   lowConfidenceThreshold = 70,
+  isLoading = false,
+  imagePreview = null,
   offline = false,
   queueCount = 0,
   onTakePhoto,
@@ -104,8 +107,26 @@ export default function PredictHomeScreen({
               Cadrez un seul objet, fond uni, bonne lumière.
             </div>
           </div>
+          {imagePreview && (
+            <div
+              style={{
+                borderRadius: "var(--radius-btn)",
+                overflow: "hidden",
+                border: "1px solid var(--border)",
+                aspectRatio: "16/9",
+              }}
+            >
+              <img
+                src={imagePreview}
+                alt="Aperçu"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            </div>
+          )}
+
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <PrimaryButton
+              disabled={isLoading}
               onClick={onTakePhoto}
               showIcons={showIcons}
               leftIcon={<Ic.camera />}
@@ -113,6 +134,7 @@ export default function PredictHomeScreen({
               Prendre une photo
             </PrimaryButton>
             <SecondaryButton
+              disabled={isLoading}
               onClick={onPickGallery}
               showIcons={showIcons}
               leftIcon={<Ic.gallery />}

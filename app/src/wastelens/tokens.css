@@ -54,3 +54,7 @@
 .theme-civique textarea {
   font-family: inherit;
 }
+
+@keyframes wastelens-spin {
+  to { transform: rotate(360deg); }
+}
