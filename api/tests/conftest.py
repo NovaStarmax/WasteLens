@@ -49,6 +49,8 @@ def mock_db(mock_admin_user):
     session = AsyncMock(spec=AsyncSession)
     mock_result = MagicMock()
     mock_result.scalar_one_or_none.return_value = mock_admin_user
+    mock_result.scalars.return_value.all.return_value = []
+    mock_result.scalar.return_value = 0
     session.execute = AsyncMock(return_value=mock_result)
     return session
 

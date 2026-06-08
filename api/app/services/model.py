@@ -35,14 +35,6 @@ _TRANSFORMS = transforms.Compose(
 )
 
 
-def _select_device() -> torch.device:
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-    if torch.backends.mps.is_available():
-        return torch.device("mps")
-    return torch.device("cpu")
-
-
 def _build_model(num_classes: int) -> nn.Module:
     model = resnet18(weights=None)
 
@@ -65,7 +57,7 @@ class ModelService:
     def __init__(self) -> None:
         self._model: nn.Module | None = None
         self._class_names: list[str] = []
-        self._device = _select_device()
+        self._device = torch.device("cpu")
 
     @classmethod
     def get_instance(cls) -> "ModelService":

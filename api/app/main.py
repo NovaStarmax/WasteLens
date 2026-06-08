@@ -12,7 +12,7 @@ from slowapi.errors import RateLimitExceeded
 from app.core.limiter import limiter
 from app.db.base import Base, engine
 from app.db.seed import create_admin_if_empty
-from app.routers import auth, health, predict, reports
+from app.routers import auth, health, history, predict, reports
 from app.services.model import ModelService
 from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -65,5 +65,6 @@ app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(predict.router)
 app.include_router(reports.router)
+app.include_router(history.router)
 
 logger.info("WasteLens API started — env=%s, version=%s", os.getenv("ENVIRONMENT"), os.getenv("VERSION"))
