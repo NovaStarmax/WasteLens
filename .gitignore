@@ -97,6 +97,7 @@ temp/
 *.webp
 *.svg
 !model/reports/*.png
+!app/public/favicon.png
 !app/src/assets/demo/*.jpg
 
 # Others
