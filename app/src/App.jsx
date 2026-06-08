@@ -5,11 +5,8 @@ import {
   ResultScreen,
   LegalScreen,
 } from "./wastelens";
-import { login, setToken, isTokenValid, predict, clearToken } from "./services/api";
+import { login, setToken, isTokenValid, predict, clearToken, getHistory } from "./services/api";
 import { Loader2 } from "lucide-react";
-
-const HISTORY_KEY = "wastelens_history";
-const HISTORY_MAX = 10;
 
 const DEMO_IMAGES = {
   cardboard: () => import("./assets/demo/cardboard.jpg"),
@@ -23,10 +20,7 @@ const DEMO_IMAGES = {
 export default function App() {
   const [route, setRoute] = useState("login");
   const [user, setUser] = useState(null);
-  const [history, setHistory] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
-    catch { return []; }
-  });
+  const [history, setHistory] = useState([]);
   const [current, setCurrent] = useState(null);
   const [currentImageUrl, setCurrentImageUrl] = useState(null);
   const [offline, setOffline] = useState(false);
@@ -44,6 +38,7 @@ export default function App() {
   useEffect(() => {
     if (isTokenValid()) {
       setRoute("home");
+      loadHistory();
     } else {
       clearToken();
     }
@@ -60,6 +55,26 @@ export default function App() {
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, [showLogoutMenu]);
 
+  // ---- HISTORY ----
+  async function loadHistory() {
+    try {
+      const data = await getHistory(0, 20);
+      setHistory(
+        data.predictions.map((p) => ({
+          id: p.id,
+          cls: p.predicted_class,
+          confidence: Math.round(p.confidence * 100),
+          time: new Date(p.timestamp).toLocaleTimeString("fr-FR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        }))
+      );
+    } catch {
+      setHistory([]);
+    }
+  }
+
   // ---- LOGIN ----
   async function handleLogin(email, password) {
     setLoginLoading(true);
@@ -69,6 +84,7 @@ export default function App() {
       setToken(access_token);
       setUser({ email });
       setRoute("home");
+      loadHistory();
     } catch (err) {
       setLoginError(err.message);
     } finally {
@@ -103,11 +119,7 @@ export default function App() {
       };
       setCurrent(entry);
       setCurrentImageUrl(thumbnail);
-      setHistory((prev) => {
-        const next = [entry, ...prev].slice(0, HISTORY_MAX);
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-        return next;
-      });
+      loadHistory();
       setRoute("result");
     } catch (err) {
       URL.revokeObjectURL(thumbnail);

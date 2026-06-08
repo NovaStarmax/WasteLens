@@ -69,3 +69,17 @@ export async function predict(imageFile) {
 
   return res.json()
 }
+
+export async function getHistory(skip = 0, limit = 20) {
+  const token = getToken()
+  if (!token) throw new Error('Session expirée.')
+
+  const res = await fetch(`${API_BASE}/history/me?skip=${skip}&limit=${limit}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (res.status === 401) throw new Error('Session expirée.')
+  if (!res.ok) throw new Error("Erreur lors du chargement de l'historique.")
+
+  return res.json()
+}
