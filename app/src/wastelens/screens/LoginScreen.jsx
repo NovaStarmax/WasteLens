@@ -51,24 +51,7 @@ export default function LoginScreen({
           paddingTop: 32,
         }}
       >
-        <div
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: "var(--radius-btn)",
-            background: "var(--primary)",
-            color: "var(--primary-ink)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontFamily: "var(--font-display)",
-            fontSize: 28,
-            fontWeight: 700,
-            letterSpacing: "-0.04em",
-          }}
-        >
-          W
-        </div>
+        <img src="/favicon.png" alt="WasteLens" style={{ width: 64, height: 64, marginBottom: 16 }} />
         <div>
           <div
             style={{

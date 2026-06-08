@@ -5,7 +5,8 @@ import {
   ResultScreen,
   LegalScreen,
 } from "./wastelens";
-import { login, setToken, isTokenValid, predict, clearToken, getHistory } from "./services/api";
+import AdminScreen from "./wastelens/screens/AdminScreen";
+import { login, setToken, isTokenValid, predict, clearToken, getHistory, getRoleFromToken, getToken } from "./services/api";
 import { Loader2 } from "lucide-react";
 
 const DEMO_IMAGES = {
@@ -21,6 +22,7 @@ export default function App() {
   const [route, setRoute] = useState("login");
   const [user, setUser] = useState(null);
   const [history, setHistory] = useState([]);
+  const [historyTotal, setHistoryTotal] = useState(0);
   const [current, setCurrent] = useState(null);
   const [currentImageUrl, setCurrentImageUrl] = useState(null);
   const [offline, setOffline] = useState(false);
@@ -37,6 +39,12 @@ export default function App() {
 
   useEffect(() => {
     if (isTokenValid()) {
+      try {
+        const payload = JSON.parse(atob(getToken().split('.')[1]))
+        setUser({ email: payload.sub, role: payload.role || null })
+      } catch {
+        setUser({ email: '', role: null })
+      }
       setRoute("home");
       loadHistory();
     } else {
@@ -56,23 +64,35 @@ export default function App() {
   }, [showLogoutMenu]);
 
   // ---- HISTORY ----
+  function normalizeHistory(predictions) {
+    return predictions.map((p) => ({
+      id: p.id,
+      cls: p.predicted_class,
+      confidence: Math.round(p.confidence * 100),
+      time: new Date(p.timestamp).toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    }));
+  }
+
   async function loadHistory() {
     try {
-      const data = await getHistory(0, 20);
-      setHistory(
-        data.predictions.map((p) => ({
-          id: p.id,
-          cls: p.predicted_class,
-          confidence: Math.round(p.confidence * 100),
-          time: new Date(p.timestamp).toLocaleTimeString("fr-FR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        }))
-      );
+      const data = await getHistory(0, 10);
+      setHistory(normalizeHistory(data.predictions));
+      setHistoryTotal(data.total);
     } catch {
       setHistory([]);
+      setHistoryTotal(0);
     }
+  }
+
+  async function loadMoreHistory() {
+    try {
+      const data = await getHistory(history.length, 10);
+      setHistory((prev) => [...prev, ...normalizeHistory(data.predictions)]);
+      setHistoryTotal(data.total);
+    } catch {}
   }
 
   // ---- LOGIN ----
@@ -82,7 +102,7 @@ export default function App() {
     try {
       const { access_token } = await login(email, password);
       setToken(access_token);
-      setUser({ email });
+      setUser({ email, role: getRoleFromToken() });
       setRoute("home");
       loadHistory();
     } catch (err) {
@@ -202,6 +222,8 @@ export default function App() {
           <PredictHomeScreen
             agentName={user?.email}
             history={history}
+            historyTotal={historyTotal}
+            onLoadMore={loadMoreHistory}
             isLoading={predictLoading}
             imagePreview={pendingImageUrl}
             offline={offline}
@@ -258,6 +280,34 @@ export default function App() {
                 {user?.email}
               </div>
               <hr style={{ margin: "4px 0", border: "none", borderTop: "1px solid var(--border)" }} />
+              {user?.role === "admin" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => { setShowLogoutMenu(false); setRoute("admin"); }}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "8px 8px",
+                      border: "none",
+                      background: "transparent",
+                      borderRadius: "var(--radius-btn)",
+                      color: "var(--primary)",
+                      fontFamily: "var(--font-body)",
+                      fontSize: 14,
+                      fontWeight: 500,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <span style={{ fontSize: 16 }}>⚙</span>
+                    Dashboard Admin
+                  </button>
+                  <hr style={{ margin: "4px 0", border: "none", borderTop: "1px solid var(--border)" }} />
+                </>
+              )}
               <button
                 type="button"
                 onClick={() => { handleLogout(); setShowLogoutMenu(false); }}
@@ -297,6 +347,10 @@ export default function App() {
       )}
 
       {route === "legal" && <LegalScreen onBack={() => setRoute("home")} />}
+
+      {route === "admin" && (
+        <AdminScreen onBack={() => setRoute("home")} />
+      )}
     </div>
   );
 }

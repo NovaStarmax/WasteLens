@@ -55,7 +55,7 @@ async def predict(
     raw = await file.read()
 
     if len(raw) > _MAX_SIZE_BYTES:
-        raise HTTPException(status_code=400, detail="File exceeds the 10 MB size limit.")
+        raise HTTPException(status_code=413, detail="File exceeds the 10 MB size limit.")
 
     if not _check_magic(raw):
         raise HTTPException(status_code=400, detail="File content does not match a valid JPEG or PNG.")

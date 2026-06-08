@@ -47,13 +47,13 @@ def test_predict_pdf_returns_400(client, pdf_bytes, valid_token):
     assert response.status_code == 400
 
 
-def test_predict_oversized_file_returns_400(client, oversized_png_bytes, valid_token):
+def test_predict_oversized_file_returns_413(client, oversized_png_bytes, valid_token):
     response = client.post(
         "/predict",
         files={"file": ("large.png", oversized_png_bytes, "image/png")},
         headers={"Authorization": f"Bearer {valid_token}"},
     )
-    assert response.status_code == 400
+    assert response.status_code == 413
 
 
 def test_predict_corrupted_image_returns_400(client, corrupted_png_bytes, valid_token):
