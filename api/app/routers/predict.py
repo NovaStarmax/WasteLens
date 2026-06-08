@@ -1,10 +1,14 @@
 import io
 import logging
+import uuid
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from PIL import Image, UnidentifiedImageError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import verify_token
+from app.db.base import get_db
+from app.db.models import Prediction
 from app.schemas.predict import PredictResponse
 from app.services.model import ModelService
 from app.metrics import predictions_by_class, confidence_scores
@@ -40,7 +44,11 @@ def _check_magic(data: bytes) -> bool:
         500: {"description": "Model inference failed"},
     },
 )
-async def predict(file: UploadFile = File(...), _: dict = Depends(verify_token)) -> PredictResponse:
+async def predict(
+    file: UploadFile = File(...),
+    payload: dict = Depends(verify_token),
+    db: AsyncSession = Depends(get_db),
+) -> PredictResponse:
     if file.content_type not in _ALLOWED_CONTENT_TYPES:
         raise HTTPException(status_code=400, detail="Only JPEG and PNG images are accepted.")
 
@@ -65,5 +73,16 @@ async def predict(file: UploadFile = File(...), _: dict = Depends(verify_token))
 
     predictions_by_class.labels(predicted_class=result["predicted_class"]).inc()
     confidence_scores.observe(result["confidence"])
+
+    try:
+        prediction = Prediction(
+            user_id=uuid.UUID(payload["user_id"]),
+            predicted_class=result["predicted_class"],
+            confidence=result["confidence"],
+        )
+        db.add(prediction)
+        await db.commit()
+    except Exception as exc:
+        logger.exception("Failed to persist prediction: %s", exc)
 
     return PredictResponse(**result)
