@@ -15,27 +15,57 @@ import TopBar from "../components/TopBar";
  */
 export const DEFAULT_LEGAL_SECTIONS = [
   {
-    title: "Traitement par IA",
+    title: "Responsable du traitement",
     description:
-      "Modèle ResNet18 hébergé en France. Photos analysées en mémoire, aucune image n'est stockée par défaut.",
+      "Antoine Gobbe — agobbe@marseille-tourisme.com · " +
+      "Office de Tourisme et des Congrès de Marseille.",
+  },
+  {
+    title: "Données collectées",
+    description:
+      "Nom d'utilisateur et historique des prédictions (classe détectée, " +
+      "score de confiance, horodatage). Aucune image n'est stockée — " +
+      "traitement en mémoire uniquement.",
+  },
+  {
+    title: "Finalité du traitement",
+    description:
+      "Authentification des utilisateurs et traçabilité des prédictions " +
+      "IA. Base légale : consentement (connexion volontaire à l'application).",
+  },
+  {
+    title: "Durée de conservation",
+    description:
+      "Les données sont conservées jusqu'à la suppression du compte " +
+      "par l'administrateur. Aucune suppression automatique.",
+  },
+  {
+    title: "Cookies et stockage local",
+    description:
+      "L'application utilise uniquement le localStorage du navigateur " +
+      "pour stocker le token d'authentification JWT. " +
+      "Aucun cookie de tracking ou de publicité n'est utilisé.",
+  },
+  {
+    title: "Vos droits (RGPD)",
+    description:
+      "Vous disposez d'un droit d'accès, de rectification et de suppression " +
+      "de vos données. Pour exercer ces droits, contactez : " +
+      "agobbe@marseille-tourisme.com. Réponse sous 30 jours.",
   },
   {
     title: "Hébergement",
     description:
-      "OVHcloud Roubaix · serveurs UE. Aucune sous-traitance hors UE.",
-  },
-  {
-    title: "Vos droits",
-    description:
-      "Accès, rectification, suppression et opposition. Réponse sous 30 jours.",
-  },
-  {
-    title: "Contact DPO",
-    description: "dpo@structure.fr · 04 91 00 00 00",
+      "OVHcloud · 2 rue Kellermann, 59100 Roubaix, France. " +
+      "Serveurs localisés dans l'Union Européenne. " +
+      "Aucune sous-traitance hors UE.",
   },
   {
     title: "Mentions légales",
-    description: "Éditeur, hébergeur, propriété intellectuelle.",
+    description:
+      "Éditeur : Antoine Gobbe. Application développée dans le cadre " +
+      "d'une formation Développeur en Intelligence Artificielle (RNCP). " +
+      "Propriété intellectuelle réservée.",
   },
 ];
 
@@ -174,13 +204,6 @@ function LegalItem({ title, desc, onClick, showIcons }) {
           {desc}
         </div>
       </div>
-      {showIcons && (
-        <Ic.chev
-          width={16}
-          height={16}
-          style={{ color: "var(--text-muted)", flexShrink: 0 }}
-        />
-      )}
     </button>
   );
 }
