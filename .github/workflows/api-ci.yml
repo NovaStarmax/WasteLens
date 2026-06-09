@@ -5,6 +5,7 @@ on:
     branches:
       - "feature/**"
       - "develop"
+      - "main"
     paths:
       - "api/**"
       - ".github/workflows/api-ci.yml"
