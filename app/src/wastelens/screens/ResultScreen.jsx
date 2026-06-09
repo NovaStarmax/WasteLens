@@ -54,6 +54,8 @@ export default function ResultScreen({
         onLeftClick={onBack}
         onRightClick={onHistory}
         showIcons={showIcons}
+        ariaLabelLeft="Retour"
+        ariaLabelRight="Voir l'historique"
       />
 
       {/* Bandeau photo + métadata */}
@@ -84,6 +86,7 @@ export default function ResultScreen({
               <Dialog.Trigger asChild>
                 <button
                   type="button"
+                  aria-label="Voir l'image en plein écran"
                   style={{
                     width: "100%", height: "100%", padding: 0,
                     border: "none", background: "none",
@@ -92,7 +95,7 @@ export default function ResultScreen({
                 >
                   <img
                     src={imageUrl}
-                    alt=""
+                    alt="Photo analysée"
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     onError={() => setImageError(true)}
                   />
@@ -115,12 +118,13 @@ export default function ResultScreen({
                   <Dialog.Title style={{ display: "none" }}>Image en plein écran</Dialog.Title>
                   <img
                     src={imageUrl}
-                    alt=""
+                    alt="Photo analysée en plein écran"
                     style={{ maxWidth: "100vw", maxHeight: "100dvh", objectFit: "contain", display: "block" }}
                   />
                   <Dialog.Close asChild>
                     <button
                       type="button"
+                      aria-label="Fermer"
                       style={{
                         position: "fixed", top: 16, right: 16,
                         width: 40, height: 40, borderRadius: "50%",

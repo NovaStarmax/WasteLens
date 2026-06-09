@@ -17,6 +17,8 @@ export default function TopBar({
   onLeftClick,
   onRightClick,
   showIcons = true,
+  ariaLabelLeft = "Retour",
+  ariaLabelRight = "Action",
 }) {
   return (
     <div
@@ -31,7 +33,7 @@ export default function TopBar({
       <button
         type="button"
         onClick={onLeftClick}
-        aria-label="back"
+        aria-label={ariaLabelLeft}
         style={{
           width: 40,
           height: 40,
@@ -78,7 +80,7 @@ export default function TopBar({
       <button
         type="button"
         onClick={onRightClick}
-        aria-label="action"
+        aria-label={ariaLabelRight}
         style={{
           width: 40,
           height: 40,

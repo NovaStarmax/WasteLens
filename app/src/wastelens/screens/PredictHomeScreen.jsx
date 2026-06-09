@@ -61,6 +61,8 @@ export default function PredictHomeScreen({
         onLeftClick={onProfile}
         onRightClick={onLegal}
         showIcons={showIcons}
+        ariaLabelLeft="Ouvrir le menu"
+        ariaLabelRight="Mentions légales"
       />
 
       {offline && (

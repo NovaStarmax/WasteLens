@@ -53,6 +53,11 @@ export default function ConfidenceBar({
         </span>
       </div>
       <div
+        role="progressbar"
+        aria-valuenow={clamped}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`${label} : ${Math.round(clamped)}%`}
         style={{
           height: 8,
           borderRadius: "var(--radius-pill)",
