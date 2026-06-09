@@ -412,10 +412,10 @@ function HistoryTab() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                  <th style={thStyle}>Utilisateur</th>
-                  <th style={thStyle}>Classe</th>
-                  <th style={thStyle}>Confiance</th>
-                  <th style={thStyle}>Date</th>
+                  <th scope="col" style={thStyle}>Utilisateur</th>
+                  <th scope="col" style={thStyle}>Classe</th>
+                  <th scope="col" style={thStyle}>Confiance</th>
+                  <th scope="col" style={thStyle}>Date</th>
                 </tr>
               </thead>
               <tbody>
@@ -545,7 +545,7 @@ function MetricsTab() {
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--border)" }}>
                     {["Classe", "Précision", "Rappel", "F1"].map((h) => (
-                      <th key={h} style={thStyle}>{h}</th>
+                      <th key={h} scope="col" style={thStyle}>{h}</th>
                     ))}
                   </tr>
                 </thead>
