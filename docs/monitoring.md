@@ -221,3 +221,12 @@ Le dashboard Grafana est accessible via tout navigateur standard (Chrome, Firefo
 - Les données des panels sont également disponibles en format tabulaire dans Grafana (bouton **Inspect → Data** sur chaque panel), compatible avec les lecteurs d'écran.
 - Les titres de panels, labels d'axes et légendes sont explicites pour permettre une lecture sans interprétation visuelle exclusive.
 - Les couleurs des seuils (vert/orange/rouge) sont accompagnées de valeurs numériques affichées dans les panels de type Stat pour ne pas reposer uniquement sur la couleur.
+
+---
+
+## Seuils et alertes configurés
+
+| Métrique | Seuil | Durée | Canal | Action |
+|---|---|---|---|---|
+| Latence /predict | > 15s | 5 min | Telegram | Vérifier charge serveur |
+| Taux erreur 5xx | > 10% | 5 min | Telegram | Vérifier logs API |

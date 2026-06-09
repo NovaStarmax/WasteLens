@@ -18,7 +18,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
   "links": [],
   "panels": [
     {
@@ -36,7 +35,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -104,7 +104,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -146,7 +147,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "editorMode": "code",
+          "editorMode": "builder",
           "expr": "rate(http_request_duration_seconds_sum{handler=\"/predict\"}[5m]) / rate(http_request_duration_seconds_count{handler=\"/predict\"}[5m])",
           "instant": false,
           "legendFormat": "Latence moyenne",
@@ -172,7 +173,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -301,13 +303,13 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "WasteLens Dashboard",
   "uid": "wastelens-dashboard",
-  "version": 3,
+  "version": 1,
   "weekStart": ""
 }

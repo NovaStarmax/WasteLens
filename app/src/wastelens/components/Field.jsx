@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 /**
  * Champ de formulaire libellé (label en haut, input dans une surface).
@@ -23,6 +23,7 @@ export default function Field({
   disabled,
   ...rest
 }) {
+  const [focused, setFocused] = useState(false);
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <span
@@ -43,7 +44,7 @@ export default function Field({
           alignItems: "center",
           height: 52,
           background: "var(--surface)",
-          border: "1.5px solid var(--border)",
+          border: `1.5px solid ${focused ? "var(--primary)" : "var(--border)"}`,
           borderRadius: "var(--radius-btn)",
           padding: "0 14px",
           gap: 8,
@@ -59,11 +60,12 @@ export default function Field({
           autoComplete={autoComplete}
           required={required}
           disabled={disabled}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           style={{
             flex: 1,
             border: "none",
             background: "transparent",
-            outline: "none",
             fontSize: 16,
             fontFamily: "var(--font-body)",
             color: "var(--text)",

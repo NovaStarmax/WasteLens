@@ -619,6 +619,7 @@ export default function AdminScreen({ onBack }) {
         subtitle="Administration"
         leftIcon={<Ic.back />}
         onLeftClick={onBack}
+        ariaLabelLeft="Retour à l'accueil"
       />
       <TabBar active={activeTab} onChange={setActiveTab} />
       <div style={{ flex: 1, overflow: "auto", padding: "16px 20px 32px" }}>
