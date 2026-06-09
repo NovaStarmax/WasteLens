@@ -1,0 +1,47 @@
+name: API CI
+
+on:
+  push:
+    branches:
+      - "feature/**"
+      - "develop"
+      - "main"
+    paths:
+      - "api/**"
+      - ".github/workflows/api-ci.yml"
+
+  pull_request:
+    branches:
+      - "develop"
+    paths:
+      - "api/**"
+      - ".github/workflows/api-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: api
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        run: |
+          curl --proto '=https' --tlsv1.2 -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Check uv installation
+        run: uv --version
+
+      - name: Install Python 3.13
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run API tests
+        run: uv run pytest tests/ -v --tb=short --cov=app --cov-report=term-missing

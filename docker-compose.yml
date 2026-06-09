@@ -1,0 +1,62 @@
+services:
+  wastelens-api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    env_file:
+      - ./api/.env
+    environment:
+      - MODEL_PATH=/app/checkpoints/best_model.pt
+      - REPORTS_PATH=/app/reports
+    volumes:
+      - ./model/checkpoints:/app/checkpoints:ro
+      - ./model/reports:/app/reports:ro
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  wastelens-app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    expose:
+      - "80"
+    depends_on:
+      - wastelens-api
+    restart: unless-stopped
+
+  prometheus:
+    build:
+      context: ./monitoring
+      dockerfile: Dockerfile.prometheus
+    volumes:
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=15d'
+    expose:
+      - "9090"
+    restart: unless-stopped
+    depends_on:
+      - wastelens-api
+
+  grafana:
+    build:
+      context: ./monitoring
+      dockerfile: Dockerfile.grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+    expose:
+      - "3000"
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus_data:
+  grafana_data:

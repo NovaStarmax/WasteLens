@@ -4,11 +4,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-package-lock.json
+
 yarn.lock
 pnpm-lock.yaml
 
 # Python
+model/uv.lock
 __pycache__/
 *.py[cod]
 *.pyo
@@ -95,10 +96,18 @@ temp/
 *.gif
 *.webp
 *.svg
+!model/reports/*.png
+!app/public/favicon.png
+!app/src/assets/demo/*.jpg
 
 # Others
 *.log
 *.lock
+!api/uv.lock
 *.cache
 *.bak
 *.tmp
+
+# Folders
+model/data/*
+model/checkpoints/*

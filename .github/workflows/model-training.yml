@@ -1,0 +1,83 @@
+name: Model Training
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - "develop"
+    paths:
+      - "model/**"
+      - ".github/workflows/model-training.yml"
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: model
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        run: |
+          curl --proto '=https' --tlsv1.2 -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Check uv installation
+        run: uv --version
+
+      - name: Install Python 3.13
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Check Kaggle secrets
+        run: |
+          test -n "${{ secrets.KAGGLE_USERNAME }}"
+          test -n "${{ secrets.KAGGLE_KEY }}"
+
+      - name: Configure Kaggle credentials
+        run: |
+          mkdir -p ~/.kaggle
+
+          cat <<EOF > ~/.kaggle/kaggle.json
+          {
+            "username": "${{ secrets.KAGGLE_USERNAME }}",
+            "key": "${{ secrets.KAGGLE_KEY }}"
+          }
+          EOF
+
+          chmod 600 ~/.kaggle/kaggle.json
+
+      - name: Download dataset
+        run: uv run python download_dataset.py
+
+      - name: Train model
+        run: uv run python train.py
+
+      - name: Evaluate model
+        run: uv run python evaluate.py
+
+      - name: Upload trained model
+        uses: actions/upload-artifact@v4
+        with:
+          name: best-model-${{ github.sha }}
+          path: model/checkpoints/best_model.pt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload evaluation reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: training-reports-${{ github.sha }}
+          path: |
+            model/reports/confusion_matrix.png
+            model/reports/evaluation_report.json
+            model/reports/training_history.json
+          if-no-files-found: error
+          retention-days: 30
