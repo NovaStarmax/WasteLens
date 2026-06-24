@@ -44,6 +44,12 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: ./artifacts/
 
+      - name: Verify model integrity
+        run: |
+          cd ./artifacts
+          sha256sum -c best_model.sha256
+          echo "✅ Model integrity verified"
+
       - name: Copy reports to VPS
         run: |
           scp ./artifacts/evaluation_report.json ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/evaluation_report.json

@@ -60,6 +60,12 @@ jobs:
       - name: Train model
         run: uv run python train.py
 
+      - name: Compute model checksum
+        working-directory: model/checkpoints
+        run: |
+          sha256sum best_model.pt > best_model.sha256
+          cat best_model.sha256
+
       - name: Evaluate model
         run: uv run python evaluate.py
 
@@ -79,5 +85,6 @@ jobs:
             model/reports/confusion_matrix.png
             model/reports/evaluation_report.json
             model/reports/training_history.json
+            model/checkpoints/best_model.sha256
           if-no-files-found: error
           retention-days: 30
