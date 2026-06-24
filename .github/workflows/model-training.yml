@@ -57,6 +57,10 @@ jobs:
       - name: Download dataset
         run: uv run python download_dataset.py
 
+      - name: Validate dataset
+        working-directory: model
+        run: uv run python validate_dataset.py
+
       - name: Train model
         run: uv run python train.py
 
