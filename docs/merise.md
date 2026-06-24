@@ -7,8 +7,8 @@ Deux entités sont identifiées : **User** et **Prediction**.
 Un utilisateur peut effectuer zéro ou plusieurs prédictions. Chaque prédiction est effectuée par exactement un utilisateur.
 
 ```
-┌─────────────────┐         effectue        ┌──────────────────────┐
-│      USER       │ 1,1 ────────────── 0,N  │     PREDICTION       │
+┌─────────────────┐         effectue         ┌──────────────────────┐
+│      USER       │ 1,1 ────────────── 0,N   │     PREDICTION       │
 ├─────────────────┤                          ├──────────────────────┤
 │ id (PK)         │                          │ id (PK)              │
 │ username        │                          │ user_id (FK)         │

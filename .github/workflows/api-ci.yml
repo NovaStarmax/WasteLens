@@ -43,5 +43,8 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      - name: Scan dependencies for vulnerabilities
+        run: uv run --with pip-audit pip-audit
+
       - name: Run API tests
         run: uv run pytest tests/ -v --tb=short --cov=app --cov-report=term-missing
