@@ -17,7 +17,7 @@ Push code (api/)          Push code (model/)         Model Training réussi
 
 | Workflow | Fichier | Déclencheur principal | Rôle |
 |---|---|---|---|
-| API CI | `api-ci.yml` | Push sur `feature/**` ou `develop` (fichiers `api/`) | Lance les tests + coverage |
+| API CI | `api-ci.yml` | Push sur `feature/**`, `develop` ou `main` (fichiers `api/`) | Lance les tests, scan CVE + coverage |
 | Model Training | `model-training.yml` | Push sur `develop` (fichiers `model/`) ou manuel | Entraîne et évalue le modèle |
 | CD Model | `cd-model.yml` | Fin réussie de Model Training sur `develop` | Déploie le modèle sur le VPS |
 
@@ -44,7 +44,7 @@ Ces secrets sont configurés dans **Settings → Secrets and variables → Actio
 ### API CI (`api-ci.yml`)
 
 Se déclenche sur :
-- **Push** vers `feature/**` ou `develop` — uniquement si des fichiers dans `api/` ou `.github/workflows/api-ci.yml` ont été modifiés
+- **Push** vers `feature/**`, `develop` ou `main` — uniquement si des fichiers dans `api/` ou `.github/workflows/api-ci.yml` ont été modifiés
 - **Pull Request** vers `develop` — mêmes conditions de path
 
 ### Model Training (`model-training.yml`)
@@ -69,7 +69,7 @@ Les artifacts sont des fichiers produits pendant l'exécution d'un workflow et s
 | Artifact | Workflow | Rétention | Contenu |
 |---|---|---|---|
 | `best-model-{sha}` | `model-training.yml` | 30 jours | `best_model.pt` — poids ResNet18 entraîné |
-| `training-reports-{sha}` | `model-training.yml` | 30 jours | `evaluation_report.json`, `confusion_matrix.png`, `training_history.json` |
+| `training-reports-{sha}` | `model-training.yml` | 30 jours | `evaluation_report.json`, `confusion_matrix.png`, `training_history.json`, `best_model.sha256` |
 
 Le `{sha}` dans le nom de l'artifact correspond au SHA du commit qui a déclenché l'entraînement. Cela permet à `cd-model.yml` de retrouver l'artifact correspondant au bon run.
 
@@ -111,10 +111,12 @@ gh workflow run model-training.yml --ref develop
 ```
 GitHub Actions (cd-model.yml)
   │
-  ├── Télécharge best_model.pt      (artifact best-model-{sha})
-  ├── Télécharge evaluation_report.json + confusion_matrix.png  (artifact training-reports-{sha})
+  ├── Télécharge best_model.pt                                  (artifact best-model-{sha})
+  ├── SCP → /tmp/best_model.pt                                  (sur le VPS)
   │
-  ├── SCP → /tmp/best_model.pt           (sur le VPS)
+  ├── Télécharge evaluation_report.json + best_model.sha256    (artifact training-reports-{sha})
+  ├── Vérifie sha256sum -c best_model.sha256                    (CI s'arrête si altéré)
+  │
   ├── SCP → /tmp/evaluation_report.json  (sur le VPS)
   ├── SCP → /tmp/confusion_matrix.png    (sur le VPS)
   │
@@ -146,3 +148,43 @@ Le runner GitHub Actions utilise `webfactory/ssh-agent` pour charger la clé pri
 | Production | Coolify (auto sur push `develop`) | Variables configurées dans l'interface Coolify |
 
 Les secrets applicatifs (`APP_USERNAME`, `APP_PASSWORD_HASH`, `JWT_SECRET`, `GRAFANA_ADMIN_PASSWORD`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) ne sont jamais versionnés dans le dépôt git. Ils sont injectés au runtime via Coolify en production et via `.env` en local.
+
+---
+
+## 8. Sécurité de la chaîne CI/CD (OWASP A06 + A08)
+
+### A06 — Scan de vulnérabilités des dépendances
+
+Le workflow `api-ci.yml` intègre un step `pip-audit` après `uv sync --frozen` :
+
+```yaml
+- name: Scan dependencies for vulnerabilities
+  run: |
+    uv run --with pip-audit pip-audit \
+      --ignore-vuln PYSEC-2026-161 \
+      --ignore-vuln CVE-2026-48818 \
+      --ignore-vuln CVE-2026-48817 \
+      --ignore-vuln CVE-2026-54283 \
+      --ignore-vuln CVE-2026-54282 \
+      --ignore-vuln CVE-2025-3000
+```
+
+`pip-audit` audite le lockfile `uv.lock` contre les bases CVE et PyPA. La CI échoue si une nouvelle vulnérabilité non ignorée est détectée.
+
+**CVEs ignorées et justification :**
+
+| ID | Package | Raison |
+|---|---|---|
+| PYSEC-2026-161, CVE-2026-48817/18, CVE-2026-54282/83 | `starlette 0.52.1` | Fix nécessite starlette ≥ 1.3.1, incompatible avec FastAPI 0.138.0 + prometheus_fastapi_instrumentator |
+| CVE-2025-3000 | `torch 2.12.0` | Installé depuis l'index PyTorch CPU (`+cpu`), non résolvable via PyPI standard |
+
+**CVE corrigée lors de la mise en place :** `python-multipart 0.0.29` → `0.0.32` (CVE-2026-53538/39/40).
+
+### A08 — Vérification d'intégrité du modèle
+
+Le modèle IA est signé par checksum SHA-256 à la source et vérifié avant déploiement :
+
+1. **`model-training.yml`** — après l'entraînement, calcule `best_model.sha256` et le publie dans l'artifact `training-reports-{sha}`
+2. **`cd-model.yml`** — après téléchargement de l'artifact, vérifie `sha256sum -c best_model.sha256` avant toute copie vers le VPS
+
+Si le fichier `best_model.pt` a été altéré entre la génération et le déploiement, la CI s'interrompt avec une erreur.
