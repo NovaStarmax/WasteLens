@@ -175,7 +175,7 @@ Le workflow `api-ci.yml` intègre un step `pip-audit` après `uv sync --frozen` 
 
 | ID | Package | Raison |
 |---|---|---|
-| PYSEC-2026-161, CVE-2026-48817/18, CVE-2026-54282/83 | `starlette 0.52.1` | Fix nécessite starlette ≥ 1.3.1, incompatible avec FastAPI 0.138.0 + prometheus_fastapi_instrumentator |
+| PYSEC-2026-161, CVE-2026-48817/18, CVE-2026-54282/83 | `starlette 0.52.1` | Fix nécessite starlette ≥ 1.3.1, incompatible avec FastAPI 0.136.1 + prometheus_fastapi_instrumentator |
 | CVE-2025-3000 | `torch 2.12.0` | Installé depuis l'index PyTorch CPU (`+cpu`), non résolvable via PyPI standard |
 
 **CVE corrigée lors de la mise en place :** `python-multipart 0.0.29` → `0.0.32` (CVE-2026-53538/39/40).
@@ -185,6 +185,6 @@ Le workflow `api-ci.yml` intègre un step `pip-audit` après `uv sync --frozen` 
 Le modèle IA est signé par checksum SHA-256 à la source et vérifié avant déploiement :
 
 1. **`model-training.yml`** — après l'entraînement, calcule `best_model.sha256` et le publie dans l'artifact `training-reports-{sha}`
-2. **`cd-model.yml`** — après téléchargement de l'artifact, vérifie `sha256sum -c best_model.sha256` avant toute copie vers le VPS
+2. **`cd-model.yml`** — après SCP du modèle vers le VPS, télécharge l'artifact `training-reports` et vérifie `sha256sum -c best_model.sha256` sur le runner ; si le checksum échoue, le workflow s'arrête avant toute activation du modèle
 
 Si le fichier `best_model.pt` a été altéré entre la génération et le déploiement, la CI s'interrompt avec une erreur.

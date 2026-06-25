@@ -82,3 +82,32 @@ Critères d'acceptation :
 - [ ] Les deux endpoints requièrent un JWT valide (HTTP 401 sinon)
 - [ ] Si les fichiers de rapport sont absents, retourne HTTP 404
 - [ ] Accessibilité : la matrice de confusion a un attribut `alt` descriptif côté frontend
+
+---
+
+## Parcours utilisateurs
+
+### Parcours agent (rôle user)
+
+```mermaid
+flowchart TD
+  A[LoginScreen] --> B[PredictHomeScreen]
+  B --> C[Photo ou galerie]
+  C --> D[ResultScreen]
+  D --> E[Classe + confiance + poubelle]
+  E --> B
+  B --> F[LegalScreen]
+```
+
+### Parcours administrateur (rôle admin)
+
+```mermaid
+flowchart TD
+  A[LoginScreen] --> B[PredictHomeScreen]
+  B --> C[Menu profil - AdminScreen]
+  C --> D[Onglet Utilisateurs]
+  C --> E[Onglet Historique]
+  C --> F[Onglet Métriques]
+  D --> G[Créer / Supprimer user]
+  F --> H[Lien Grafana]
+```
