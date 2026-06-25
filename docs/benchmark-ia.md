@@ -27,11 +27,43 @@
 
 **Google Cloud Vision API** — Données envoyées vers des serveurs américains par défaut. Même avec la région EU activée, Google reste soumis au droit américain (FISA 702). Écarté pour non-conformité RGPD et coût récurrent.
 
+*Prérequis techniques :*
+- Compte Google Cloud avec facturation activée (carte bancaire obligatoire)
+- SDK Python : `google-cloud-vision` — dépendance externe à intégrer et maintenir
+- Authentification : fichier JSON de compte de service (`GOOGLE_APPLICATION_CREDENTIALS`) — rotation recommandée tous les 90 jours
+- Rate limits : 1 800 requêtes/minute par défaut (quota augmentable sur demande)
+- Latence réseau additionnelle : ~80 ms (requête transatlantique Europe → USA)
+- Dépendance réseau totale : aucun mode offline possible
+
 **AWS Rekognition** — Configuration région EU possible, mais soumission au CLOUD Act américain crée un risque juridique. Écarté pour risque réglementaire et dépendance fournisseur.
+
+*Prérequis techniques :*
+- Compte AWS avec facturation activée (carte bancaire obligatoire)
+- SDK Python : `boto3` — dépendance externe à intégrer et maintenir
+- Authentification : IAM credentials (Access Key ID + Secret Access Key) — rotation recommandée tous les 90 jours
+- Rate limits : 50 transactions/seconde (3 000 req/min) — ThrottlingException au-delà
+- Latence réseau additionnelle : ~30 ms depuis Europe (région eu-west-1 Dublin)
+- Dépendance réseau totale : aucun mode offline possible
 
 **Azure Computer Vision** — Techniquement conforme avec la région EU, mais coût récurrent incompatible avec le budget formation et création d'une dépendance fournisseur non justifiée pour un modèle de classification standard.
 
+*Prérequis techniques :*
+- Abonnement Azure avec facturation activée (carte bancaire obligatoire)
+- SDK Python : `azure-cognitiveservices-vision-computervision` — dépendance externe à intégrer et maintenir
+- Authentification : clé Cognitive Services (32 caractères) + endpoint URL — rotation manuelle depuis le portail Azure
+- Rate limits : 10 transactions/seconde tier S1 (600 req/min) — HTTP 429 au-delà
+- Latence réseau additionnelle : ~20 ms depuis Europe (région West Europe, Amsterdam)
+- Dépendance réseau totale : aucun mode offline possible
+
 **OpenAI GPT-4V** — Modèle multimodal surdimensionné pour une tâche de classification à 6 classes. Latence élevée, coût par requête, données traitées aux USA. Écarté pour RGPD, coût et sur-ingénierie.
+
+*Prérequis techniques :*
+- Compte OpenAI avec facturation activée (carte bancaire obligatoire)
+- SDK Python : `openai` — dépendance externe à intégrer et maintenir
+- Authentification : clé API Bearer token — rotation recommandée régulièrement
+- Rate limits : tier-dépendant — Tier 1 : 500 req/min, Tier 5 : 10 000 req/min
+- Latence requête : 5–15 secondes par inférence (temps de génération, indépendant du réseau)
+- Dépendance réseau totale : aucun mode offline possible
 
 ---
 
