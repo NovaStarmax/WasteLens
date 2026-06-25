@@ -47,3 +47,21 @@ graph LR
 | Monitoring | Prometheus + Grafana | 10.4.0 |
 | Déploiement | Docker + Coolify | - |
 | Proxy | nginx + Traefik | - |
+
+---
+
+## Conclusion POC — Passage en production
+
+La préprod (`https://preprod.wastelens.starspath-place.fr`) a servi de POC fonctionnel déployé sur la même infrastructure que la production (VPS OVH, Coolify, Docker Compose).
+
+**Validations effectuées en préprod avant passage en production :**
+
+| Validation | Résultat |
+|---|---|
+| Authentification JWT fonctionnelle | ✅ Validé |
+| Endpoint `/predict` opérationnel (ResNet18 chargé) | ✅ Validé |
+| Monitoring Prometheus + Grafana opérationnel | ✅ Validé |
+| Pipeline CI/CD fonctionnel end-to-end | ✅ Validé |
+| Accessibilité WCAG vérifiée | ✅ Validé |
+
+**Décision de passage en production :** validée après ces vérifications. La préprod reste accessible comme environnement de staging — tout push sur `develop` y est automatiquement déployé par Coolify avant toute promotion en production stable.
