@@ -111,3 +111,5 @@ temp/
 # Folders
 model/data/*
 model/checkpoints/*
+
+scripts/deploy-wastelens-model.sh

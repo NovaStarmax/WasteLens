@@ -17,11 +17,15 @@
 
 | Service | Fournisseur | Modèle tarifaire | Localisation données | RGPD | Verdict |
 |---|---|---|---|---|---|
-| Google Cloud Vision API | Google (USA) | 1,50 $/1 000 requêtes | Serveurs USA par défaut | ❌ Transfert hors UE | ❌ Écarté |
-| AWS Rekognition | Amazon (USA) | 1 $/1 000 images | Région configurable | ⚠️ Risque CLOUD Act | ❌ Écarté |
-| Azure Computer Vision | Microsoft (USA) | 1 $/1 000 transactions | Région EU disponible | ⚠️ Acceptable mais vendor lock-in | ❌ Écarté |
-| OpenAI GPT-4V | OpenAI (USA) | ~0,01 $/image | Serveurs USA | ❌ Transfert hors UE | ❌ Écarté |
+| [Google Cloud Vision API](https://cloud.google.com/vision/pricing) | Google (USA) | 1,50 $/1 000 requêtes | Serveurs USA par défaut | ❌ Transfert hors UE ([FISA 702](https://www.cnil.fr/fr/presentation-de-larret-schrems-ii-de-la-cjue)) | ❌ Écarté |
+| [AWS Rekognition](https://aws.amazon.com/rekognition/pricing/) | Amazon (USA) | 1 $/1 000 images (standard) ; Custom Labels facturé à l'heure d'endpoint actif (≈4 $/h), non au volume | Région configurable | ⚠️ Risque [CLOUD Act](https://www.justice.gov/criminal/cloud-act-resources) | ❌ Écarté |
+| [Azure Computer Vision](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/computer-vision/) | Microsoft (USA) | 1 $/1 000 transactions | Région EU disponible | ⚠️ Acceptable mais vendor lock-in, soumis au CLOUD Act | ❌ Écarté |
+| [OpenAI GPT-4V](https://openai.com/business/pricing/) | OpenAI (USA) | ~0,01 $/image (tarification réelle par tokens, dépendante de la résolution) | Serveurs USA | ❌ Transfert hors UE | ❌ Écarté |
 | ResNet18 PyTorch (local) | Meta Research (open source) | 0 € (infra OVH existante) | VPS OVH Roubaix, France | ✅ Données en France | ✅ Retenu |
+
+**Services non étudiés en détail :**
+- [IBM Watson Visual Recognition](https://cloud.ibm.com/docs/visual-recognition?topic=visual-recognition-release-notes) — service retiré en 2021 (notes de version officielles IBM Cloud), écarté d'emblée.
+- [Clarifai](https://www.clarifai.com/company/privacy-policy) — aucune garantie documentée de résidence des données en UE dans sa politique de confidentialité, hébergement principalement US, écarté d'emblée sans étude technique approfondie.
 
 ### Justification des services écartés
 
@@ -69,7 +73,7 @@
 
 ## Adéquation fonctionnelle du service retenu
 
-ResNet18 avec transfer learning sur le dataset Garbage Classification (Kaggle, 2 527 images, 6 classes) :
+ResNet18 avec transfer learning sur le dataset Garbage Classification (Kaggle, 2 527 images, 6 classes), dérivé du dataset [TrashNet](https://github.com/garythung/trashnet) créé par Gary Thung et Mindy Yang (Stanford CS229, 2016) :
 
 | Critère | Valeur | Adéquation |
 |---|---|---|
@@ -87,7 +91,7 @@ ResNet18 avec transfer learning sur le dataset Garbage Classification (Kaggle, 2
 - **Modèle CPU-only :** pas de GPU → consommation énergétique réduite par rapport aux solutions cloud avec GPU
 - **Transfer learning :** réutilisation des poids pré-entraînés sur ImageNet — moins de calcul d'entraînement qu'un modèle from scratch
 - **Image Docker slim :** multi-stage build, suppression des dépendances CUDA (~14 GB économisés — commit `eb7d0bc`)
-- **Hébergement OVH :** datacenter de Roubaix certifié ISO 50001 (management de l'énergie), énergie renouvelable
+- **Hébergement OVH :** datacenter de Roubaix certifié ISO 50001 (management de l'énergie), 100 % d'énergie renouvelable (REF) et PUE de 1,30 sur l'exercice FY2025, audités par un tiers indépendant (APAVE) selon la norme ISO/IEC 30134 — [rapport KPI officiel OVHcloud](https://www.ovhcloud.com/sites/default/files/external_files/kpis_fy25.pdf)
 - **Pas de stockage des images :** traitement en mémoire uniquement — pas de données résiduelles ni de coût de stockage
 
 ---
@@ -101,6 +105,6 @@ ResNet18 en hébergement local est le seul service répondant à l'ensemble des 
 - ✅ Pas de dépendance GPU — compatible VPS standard
 - ✅ Accuracy suffisante — ~90 % sur 6 classes
 - ✅ Auditabilité complète — poids et code accessibles, résultats reproductibles
-- ✅ Éco-responsable — CPU-only, transfer learning, hébergement OVH ISO 50001
+- ✅ Éco-responsable — CPU-only, transfer learning, hébergement OVH ISO 50001, 100 % énergie renouvelable (PUE 1,30 audité, FY2025)
 
 Les services cloud (Google, AWS, Azure, OpenAI) ont été écartés principalement pour des raisons RGPD (transfert hors UE ou risque CLOUD Act) et de coût récurrent incompatible avec le contexte du projet.
